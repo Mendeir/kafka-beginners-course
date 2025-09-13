@@ -29,10 +29,6 @@ class WikimediaChangesProducer {
             String topic = "wikimedia.recentchange";
             BackgroundEventHandler backgroundEventHandler = new WikimediaChangeHandler(producer, topic);
 
-            Map<String, String> headers = new HashMap<>();
-            headers.put("User-Agent", "KafkaProducerApp/1.0 (student@example.com)");
-            headers.put("Accept", "text/event-stream");
-
             String url = "https://stream.wikimedia.org/v2/stream/recentchange";
             HttpConnectStrategy connectStrategy = HttpConnectStrategy.http(URI.create(url))
                     .header("User-Agent","my-kafka-producer/1.0(contact: admin@ourcompany.com)");
