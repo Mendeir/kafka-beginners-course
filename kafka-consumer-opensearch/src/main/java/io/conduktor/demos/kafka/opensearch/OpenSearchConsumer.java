@@ -7,10 +7,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.opensearch.action.index.IndexRequest;
 import org.opensearch.action.index.IndexResponse;
@@ -65,11 +62,13 @@ class OpenSearchConsumer {
                                 .id(id);
 
                         IndexResponse response = openSearchClient.index(indexRequest, RequestOptions.DEFAULT);
-                        log.info(response.getId());
+//                        log.info(response.getId());
                     } catch (Exception e) {
 
                     }
                 }
+                consumer.commitSync();
+                log.info("Offsets have been commited!");
             }
         }
     }
@@ -118,6 +117,8 @@ class OpenSearchConsumer {
 
         properties.setProperty("group.id", groupId);
         properties.setProperty("auto.offset.reset", "latest");
+
+        properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 
         return new KafkaConsumer<>(properties);
     }
