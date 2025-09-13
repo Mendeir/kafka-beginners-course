@@ -5,6 +5,7 @@ import com.launchdarkly.eventsource.HttpConnectStrategy;
 import com.launchdarkly.eventsource.background.BackgroundEventHandler;
 import com.launchdarkly.eventsource.background.BackgroundEventSource;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.net.URI;
@@ -25,6 +26,10 @@ class WikimediaChangesProducer {
         properties.setProperty("key.serializer", StringSerializer.class.getName());
         properties.setProperty("value.serializer", StringSerializer.class.getName());
 
+        properties.setProperty(ProducerConfig.LINGER_MS_CONFIG, "20");
+        properties.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, Integer.toString(32 * 1024));
+        properties.setProperty(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
+
         try (KafkaProducer<String, String> producer = new KafkaProducer<>(properties)) {
             String topic = "wikimedia.recentchange";
             BackgroundEventHandler backgroundEventHandler = new WikimediaChangeHandler(producer, topic);
@@ -33,7 +38,6 @@ class WikimediaChangesProducer {
             HttpConnectStrategy connectStrategy = HttpConnectStrategy.http(URI.create(url))
                     .header("User-Agent","my-kafka-producer/1.0(contact: admin@ourcompany.com)");
             EventSource.Builder eventSourceBuilder = new EventSource.Builder(connectStrategy);
-
 
             BackgroundEventSource.Builder builder = new BackgroundEventSource.Builder(backgroundEventHandler, eventSourceBuilder);
             BackgroundEventSource backgroundEventSource = builder.build();
